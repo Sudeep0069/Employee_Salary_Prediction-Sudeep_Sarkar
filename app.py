@@ -1,108 +1,53 @@
-import streamlit as st
-import pandas as pd
 import joblib
+import pandas as pd
+import streamlit as st
 
-#load the model
-model= joblib.load("best_model.pkl")
+# Load trained model and mappings
+model = joblib.load("best_model.pkl")
+mappings = joblib.load("mappings.pkl")
+
 st.set_page_config(page_title="Employee Salary Prediction", page_icon="🪙", layout="centered")
 st.title("🪙 Employee Salary Prediction App")
-st.markdown("predict if you earn >50k or <=50k:")
-#sidebar inputs
-st.sidebar.header("Input Employee Details")
-#replace the fields with your dataset's actual input columns
-work= {
-    "Private":3,
-    "Federal-gov":1,
-    "State-gov":8
-}
-edu={
-    "HS-grad":9,
-    "10th":6,
-    "Some-college":10,
-    "Masters":14,
-    "Bachelors":13
-}
-mar={
-    "Married":2,
-    "Unmarried":4,
-    "Divorced":0
+st.markdown("Predict if you earn >50k or <=50k:")
 
-}
-occ={
-   "Tech-support":10,
-   "Craft-repair":4,
-   "others":3
-}
-gen={
-    "Male":1,
-    "Female":0
-}
-rel={
-    "Husband":0,
-    "Own-child":1,
-    "Wife":3
-}
-rc={
-    "White":4,
-    "Black":2
-}
-cont={
-    "United-States":0,
-    "India":2,
-    "Peru":11
-}
-age= st.sidebar.slider("Age",18,65,25)
-workclass= st.sidebar.selectbox("Workclass",[
-    "Private","Federal-gov","State-gov"
-])
-fnlwgt= st.sidebar.selectbox("fnlwgt",[
-    116541,236157,158548
-])
-education= st.sidebar.selectbox("Education Level",[
-    "Bachelors","Masters","HS-grad","Some-college","10th"
-])
-marital= st.sidebar.selectbox("Marital_Status",[
-    "Married","Unmarried","Divorced"
-])
-occupation= st.sidebar.selectbox("occupation",[
-    "Tech-support","Craft-repair","others"
-])
-gender= st.sidebar.selectbox("Gender",[
-    "Male","Female"
-])
-relationship= st.sidebar.selectbox("Relationship",[
-    "Husband","Own-child","Wife"
-])
-race= st.sidebar.selectbox("Race",[
-    "White","Black"
-])
-country= st.sidebar.selectbox("country",[
-    "United-States","India","Peru"
-])
-hours_per_week= st.sidebar.slider("Hours per week",1,80,40)
-capt_gain= st.sidebar.slider("Capital Gain",10000,50000,99999)
-capt_loss= st.sidebar.slider("Capital Loss",0,1000,2000)
-#build input dataframe
-input_df= pd.DataFrame({
-    'workclass': work[workclass],
-    'age': [age],
-    'education': edu[education],
-    'marital-status': mar[marital],
-    'occupation': occ[occupation],
-    'hours-per-week': [hours_per_week],
-    'relationship': rel[relationship],
-    'gender': gen[gender],
-    'race': rc[race],
-    'country': cont[country],
-    'capital-gain': [capt_gain],
-    'capital-loss': [capt_loss],
-    'fnlwgt': [fnlwgt]
-    })
+# Sidebar inputs
+st.sidebar.header("Input Employee Details")
+
+age = st.sidebar.slider("Age", 18, 65, 25)
+workclass = st.sidebar.selectbox("Workclass", list(mappings["workclass"].keys()))
+fnlwgt = st.sidebar.selectbox("fnlwgt", list(mappings["fnlwgt"].keys()))
+education = st.sidebar.selectbox("Education Level", list(mappings["educational-num"].keys()))
+marital = st.sidebar.selectbox("Marital Status", list(mappings["marital-status"].keys()))
+occupation = st.sidebar.selectbox("Occupation", list(mappings["occupation"].keys()))
+gender = st.sidebar.selectbox("Gender", list(mappings["gender"].keys()))
+relationship = st.sidebar.selectbox("Relationship", list(mappings["relationship"].keys()))
+race = st.sidebar.selectbox("Race", list(mappings["race"].keys()))
+country = st.sidebar.selectbox("Country", list(mappings["native-country"].keys()))
+hours_per_week = st.sidebar.slider("Hours per week", 1, 80, 40)
+capt_gain = st.sidebar.slider("Capital Gain", 0, 100000, 0)
+capt_loss = st.sidebar.slider("Capital Loss", 0, 5000, 0)
+
+# Build input dataframe using mappings
+input_df = pd.DataFrame({
+    "workclass": [mappings["workclass"][workclass]],
+    "age": [mappings["age"][age]],
+    "educational-num": [mappings["educational-num"][education]],
+    "marital-status": [mappings["marital-status"][marital]],
+    "occupation": [mappings["occupation"][occupation]],
+    "hours-per-week": [mappings["hours-per-week"][hours_per_week]],
+    "relationship": [mappings["relationship"][relationship]],
+    "gender": [mappings["gender"][gender]],
+    "race": [mappings["race"][race]],
+    "native-country": [mappings["native-country"][country]],
+    "capital-gain": [mappings["capital-gain"][capt_gain]],
+    "capital-loss": [mappings["capital-loss"][capt_loss]],
+    "fnlwgt": [mappings["fnlwgt"][fnlwgt]]
+})
 
 st.write("### Input Data")
 st.write(input_df)
 
-#predict button
+# Predict button
 if st.button("Predict Salary Class"):
-  prediction= model.predict(input_df)
-  st.success(f"Prediction: {prediction[0]}")
+    prediction = model.predict(input_df)
+    st.success(f"Prediction: {prediction[0]}")
